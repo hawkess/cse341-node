@@ -1,8 +1,18 @@
 const express = require('express');
-const { body, validationResult } = require('express-validator');
+const {
+    body,
+    validationResult
+} = require('express-validator');
 const bodyParser = require('body-parser');
 const path = require('path');
 const PORT = process.env.PORT || 5000;
+
+const typeEnum = {
+    standard: "Letter (Standard)",
+    metered: "Letter (Metered)",
+    flat: "Large Envelopes (Flats)",
+    firstclass: "First-Class Package Service\u2014Retail"
+};
 
 function rateCalc(weight, type) {
     switch (type) {
@@ -27,7 +37,7 @@ function rateCalc(weight, type) {
                 return 0.95;
             break;
         case 'flat':
-                return 1.00 + ((Math.ceil(weight) - 1) * .2);
+            return 1.00 + ((Math.ceil(weight) - 1) * .2);
             break;
         case 'firstclass':
             if (weight <= 4)
@@ -46,23 +56,31 @@ function rateCalc(weight, type) {
 express()
     .use(express.static(path.join(__dirname, 'public')))
     .use(bodyParser.json())
-    .use(bodyParser.urlencoded({ extended: true }))
+    .use(bodyParser.urlencoded({
+        extended: true
+    }))
     .set('views', path.join(__dirname, 'views'))
     .set('view engine', 'ejs')
     .get('/', (req, res) => res.render('pages/index'))
     .post('/getrate', [
-    body('weight', 'Weight is required').not().isEmpty(),
-    body('units', 'Please select a unit').not().isEmpty(),
-    body('type', 'Select a postal type').not().isEmpty()
+    body('weightInput', 'Weight is required').not().isEmpty(),
+    body('unitsRadio', 'Please select a unit').not().isEmpty(),
+    body('packageRadio', 'Select a postal type').not().isEmpty()
     ], (req, res) => {
         const errors = validationResult(req);
-
         if (!errors.isEmpty()) {
             return res.status(422).jsonp(errors.array());
         } else {
-            let price = rateCalc(req.body.weight, req.body.type);
-            console.log(price);
-            res.send({ price: `${price}` });
+            return res.redirect(307, '/displayrate')
         }
+    })
+    .post('/displayrate', (req, res) => {
+        let price = rateCalc(req.body.weightInput, req.body.packageRadio);
+        res.render('pages/rate', {
+                weight: req.body.weightInput,
+                units: req.body.unitsRadio,
+                type: typeEnum[req.body.packageRadio],
+                price: Number(price).toLocaleString('en-US', { style: 'currency', currency: 'USD' })
+            });
     })
     .listen(PORT, () => console.log(`Listening on ${ PORT }`));
