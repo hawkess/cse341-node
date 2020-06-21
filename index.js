@@ -61,7 +61,7 @@ express()
     }))
     .set('views', path.join(__dirname, 'views'))
     .set('view engine', 'ejs')
-    .get('/', (req, res) => res.render('pages/index'))
+    .get('/', (req, res) => res.sendFile(path.join(__dirname, 'views/pages/index.html')))
     .post('/getrate', [
     body('weightInput', 'Weight is required').not().isEmpty(),
     body('unitsRadio', 'Please select a unit').not().isEmpty(),
