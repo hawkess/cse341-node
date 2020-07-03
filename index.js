@@ -19,8 +19,6 @@ const asyncHandler = fn => (req, res, next) => {
         .catch(next);
 };
 
-console.log(process.env.mapsAPIkey);
-
 express()
     .use(express.static(path.join(__dirname, 'public')))
     .use(bodyParser.json())
