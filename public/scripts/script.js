@@ -1,45 +1,69 @@
-var events = [];
-var map = {};
+let events = [];
+let labels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+let locations = [];
+let markers = [];
 
 $('document').ready(() => {
-    displayMap( { lat: -33.860664, lng: 151.208138 } );
-    getEvents({ params: { status: 'open', limit: 20 }});
-    $('#events').on('click', 'li', () => {
+    getEvents({
+        params: {
+            status: 'open',
+            limit: 20
+        }
+    });
+    getCategories();
+    $('#events').on('click', 'li', function () {
         let eventIndex = $(this).index();
-        console.log(eventIndex);
-    })
+        let latlng = coords(events[eventIndex])[0];
+        console.log(latlng);
+        map.panTo(latlng);
+    });
+    let d = new Date();
+    $('input[type=date]').prop('max', d.toISOString().slice(0, 10));
+    $('input[type=date]').prop('value', d.toISOString().slice(0, 10));    
+    $('#filterForm').on('change', 'select input', function() {
+        let params = {};
+        params.status = $('#statusCheck').prop("checked") ? 'closed' : 'open';
+        params.limit = $('#limitSelect').val();
+        if ($('#categorySelect').val()) {
+            params.category = $('#categorySelect').val();
+        }
+        getEvents(params);
+    });
 });
 
-
-function eventsPopulate(events) {
-    events.forEach(event => $('#events').append(`<li class="list-group-item"><div><small class="text-muted">${categories(event)}</small></div><div>${title(event)}</div></li>`));
+function categorySelectPopulate(categories) {
+    categories.forEach(cat => $('#categorySelect').append(`<option value=${cat.id}>${cat.title}</option>`));
 }
 
+function eventsPopulate(events) {
+    events.forEach(event => $('#events').append(`<li class="list-group-item"><div><small class="text-muted">${categories(event)}</small></div><div><h5>${title(event)}</h5></div></li>`));
+}
 
 function getEvents(params) {
-        $.get('/events', params)
+    $.get('/events', params)
         .done((data) => {
-            events = data.events.map(event => new Event(event));
+            events = data;
             eventsPopulate(events);
         });
 }
 
-// Event class and utility functions
-class Event {
-    constructor(event) {
-        this.title = event.title;
-        this.categories = event.categories;
-        this.geometry = event.geometry.map((geo) => {
-            return new Coordinates(geo);
+function getCategories() {
+    $.get('/categories')
+        .done((data) => {
+            categorySelectPopulate(data);
         });
-    }
 }
 
-class Coordinates {
-    constructor(geometry) {
-        this.lat = geometry.coordinates[0];
-        this.lng = geometry.coordinates[1];
-    }
+function markersPopulate(events) {
+    events.forEach((event) => {
+        locations = locations.concat(coords(event));
+    });
+    markers = locations.map((location, i) => {
+        return new google.maps.Marker({
+            position: location,
+            label: labels[i % labels.length]
+        });
+    });
 }
 
 function categories(event) {
@@ -52,24 +76,12 @@ function categories(event) {
 
 function coords(event) {
     let points = [];
-    events.geometry.forEach((geo) => {
-        points.push(geo.coordinates);
+    event.geometry.forEach((coords) => {
+        points.push(coords);
     });
-}
-
-function initMap() {
-    map = displayMap({ lat: 0, lng: 0 });    
+    return points;
 }
 
 function title(event) {
     return event.title;
 }
-
-function displayMap(coords) {
-        const mapOptions = {
-        center: coords,
-        zoom: 8
-    };
-    return new google.maps.Map($("#map"), mapOptions);
-}
-

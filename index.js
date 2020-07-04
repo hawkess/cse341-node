@@ -1,19 +1,17 @@
+const axios = require('axios');
+const bodyParser = require('body-parser');
+const { Category, Coordinates, Event } = require('./classUtils');
 const express = require('express');
 const {
     body,
     validationResult
 } = require('express-validator');
-const bodyParser = require('body-parser');
 const path = require('path');
-const axios = require('axios');
-const api = require('./apiAdapter.js');
 require('dotenv').config({
     path: '.env'
 });
 const PORT = process.env.PORT || 5000;
-
-const BASE_URL = 'https://eonet.sci.gsfc.nasa.gov/api/v3/events';
-
+const BASE_URL = 'https://eonet.sci.gsfc.nasa.gov/api/v3';
 const asyncHandler = fn => (req, res, next) => {
     Promise.resolve(fn(req, res, next))
         .catch(next);
@@ -33,16 +31,16 @@ express()
         });
     })
     .get('/events', asyncHandler(async (req, res, next) => {
-        const events = await axios.get(BASE_URL, {
+        const events = await axios.get(BASE_URL + '/events', {
             params: {
                 status: 'open',
                 limit: 20
             }
         });
-        res.send(events.data);
+        res.send(events.data.events.map(event => new Event(event)));
     }))
-    /*
-        .get('/events', asyncHandler(async (req, res, next)) => {
-            const events = await axios.get('https://eonet.sci.gsfc.nasa.gov/api/v3/events')
-            res.sendFile(path.join(__dirname, 'views/pages/index.html'))) }*/
+    .get('/categories', asyncHandler(async (req, res, next) => {
+        const categories = await axios.get(BASE_URL + '/categories');
+        res.send(categories.data.categories.map(category => new Category(category)));
+    }))
     .listen(PORT, () => console.log(`Listening on ${ PORT }`));

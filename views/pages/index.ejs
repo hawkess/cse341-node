@@ -10,20 +10,51 @@
     <div class="container-fluid h-100 m-0 p-0">
         <div class="jumbotron h-50 w-100">
             <div class="h-100 w-50 mx-auto my-0" id="map"></div>
-        </div>        
+        </div>
+        <div class="container mb-4">
             <form>
-              <div class="form-row">
-              <div class="col">
-                  <input type=""
-              </div>
+                <div class="form-inline justify-content-center" id="filterForm">
+                    <select class="form-control mx-1" id="categorySelect">
+                        <option selected>Filter by category</option>
+                    </select>
+                    <select class="form-control mx-1" id="limitSelect">
+                        <option value="10">10</option>
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                    </select>
+                    <input type="date" class="form-control mx-1" id="startDate" min="2000-01-01">
+                    <input type="date" class="form-control mx-1" id="endDate" min="2000-01-01">
+                    <input type="checkbox" class="form-check-input" id="statusCheck">
+                    <label class="form-check-label" for="statusCheck">Show Closed Events</label>
+                </div>
             </form>
         </div>
-        <div class="row">        
-        <ul class="list-group mx-auto" id="events"></ul>
+        <div class="container-fluid w-50 mx-auto">
+            <ul class="list-group mx-auto" id="events"></ul>
         </div>
     </div>
+    <script>
+        (function(exports) {
+            "use strict";
+
+            function initMap() {
+                exports.map = new google.maps.Map(document.getElementById("map"), {
+                    center: {
+                        lat: -34.397,
+                        lng: 150.644
+                    },
+                    zoom: 8
+                });
+            }
+
+            exports.initMap = initMap;
+        })((this.window = this.window || {}));
+
+    </script>
     <script src="https://maps.googleapis.com/maps/api/js?key=<%=key %>&callback=initMap&libraries=&v=weekly"></script>
-    <script async defer type="text/javascript" src="scripts/script.js"></script>    
+    <script src="https://unpkg.com/@google/markerclustererplus@4.0.1/dist/markerclustererplus.min.js"></script>
+    <script async defer type="text/javascript" src="scripts/script.js"></script>
+
 </body>
 
 </html>
