@@ -1,7 +1,7 @@
 let events = [];
 let labels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-let locations = [];
 let markers = [];
+let markerClusterer = {};
 
 $('document').ready(() => {
     getEvents({
@@ -11,6 +11,7 @@ $('document').ready(() => {
         }
     });
     getCategories();
+    markerClusterer = new MarkerClusterer(map, [], {imagePath: 'img/m'});
     $('#events').on('click', 'li', function () {
         let eventIndex = $(this).index();
         let latlng = coords(events[eventIndex])[0];
@@ -36,6 +37,7 @@ function categorySelectPopulate(categories) {
 }
 
 function eventsPopulate(events) {
+    $('#events').html('');
     events.forEach(event => $('#events').append(`<li class="list-group-item"><div><small class="text-muted">${categories(event)}</small></div><div><h5>${title(event)}</h5></div></li>`));
 }
 
@@ -44,6 +46,10 @@ function getEvents(params) {
         .done((data) => {
             events = data;
             eventsPopulate(events);
+            clearMarkers();
+            markersPopulate(events);
+            markerClusterer.clearMarkers();
+            markerClusterer.addMarkers(markers);
         });
 }
 
@@ -54,14 +60,28 @@ function getCategories() {
         });
 }
 
+function clearMarkers() {
+    for (let marker in markers) {
+        marker.setMap(null);
+    }
+    markers = [];
+}
+
 function markersPopulate(events) {
+    let locations = [];
+    let markerTuples = [];
     events.forEach((event) => {
-        locations = locations.concat(coords(event));
+        let points = coords(event);
+        points.forEach((point) => {
+           markerTuples.push({ title: title(event), location: point });
+        });
+        locations = locations.concat(points);
     });
-    markers = locations.map((location, i) => {
+    markers = markerTuples.map((tuple, i) => {
         return new google.maps.Marker({
-            position: location,
-            label: labels[i % labels.length]
+            position: tuple.location,
+            label: labels[i % labels.length],
+            title: tuple.title
         });
     });
 }
