@@ -16,16 +16,17 @@
             <form>
                 <div class="form-inline justify-content-center" id="filterForm">
                     <select class="form-control mx-1 filter-form" id="categorySelect">
-                        <option selected>Filter by category</option>
+                        <option value="" selected>All Categories</option>
                     </select>
                     <select class="form-control mx-1 filter-form" id="limitSelect">
                         <option value="10">10</option>
+                        <option value="20">20</option>
                         <option value="25">25</option>
                         <option value="50">50</option>
                     </select>
                     <input type="date" class="form-control mx-1 filter-form" id="startDate" min="2000-01-01">
                     <input type="date" class="form-control mx-1 filter-form" id="endDate" min="2000-01-01">
-                    <input type="checkbox" class="form-check-input filter-form" id="statusCheck">
+                    <input type="checkbox" class="form-check-input filter-form mx-2" id="statusCheck">
                     <label class="form-check-label" for="statusCheck">Show Closed Events</label>
                 </div>
             </form>
@@ -44,7 +45,7 @@
                         lat: -34.397,
                         lng: 150.644
                     },
-                    zoom: 10
+                    zoom: 6
                 });
             }
             exports.initMap = initMap;

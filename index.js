@@ -30,16 +30,15 @@ express()
             key: process.env.mapsAPIkey,
         });
     })
-    .get('/events', asyncHandler(async (req, res, next) => {
-        const events = await axios.get(BASE_URL + '/events', {
-            params: {
-                status: 'open',
-                limit: 20
-            }
-        });
+    .post('/events', asyncHandler(async (req, res, next) => {
+        const events = await axios.get(BASE_URL + '/events', req.body);
         res.send(events.data.events.map(event => new Event(event)));
     }))
-    .get('/categories', asyncHandler(async (req, res, next) => {
+    .post('/categories/*', asyncHandler(async (req, res, next) => {
+        const filtered = await axios.get(BASE_URL + req.path, req.body);
+        res.send(filtered.data.events.map(event => new Event(event)));
+    }))
+    .post('/categories', asyncHandler(async (req, res, next) => {
         const categories = await axios.get(BASE_URL + '/categories');
         res.send(categories.data.categories.map(category => new Category(category)));
     }))
